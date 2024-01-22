@@ -15,9 +15,10 @@ However, writing these could be tedious. If that is the case for you, you can au
 
 ```typescript
 import { StoreApi, UseBoundStore } from 'zustand'
+import { shallow } from 'zustand/shallow'
 
 type WithSelectors<S> = S extends { getState: () => infer T }
-  ? S & { use: { [K in keyof T]: () => T[K] } }
+  ? S & { use: { [K in keyof T]: (useShallow?: boolean) => T[K] } }
   : never
 
 const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
@@ -26,7 +27,7 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
   let store = _store as WithSelectors<typeof _store>
   store.use = {}
   for (let k of Object.keys(store.getState())) {
-    ;(store.use as any)[k] = () => store((s) => s[k as keyof typeof s])
+    ;(store.use as any)[k] = (useShallow?: boolean) => store((s) => s[k as keyof typeof s], useShallow ? shallow : undefined)
   }
 
   return store
